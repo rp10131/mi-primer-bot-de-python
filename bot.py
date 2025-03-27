@@ -5,7 +5,6 @@ from datetime import datetime, timedelta
 
 # Cargar las variables del archivo .env y funciones
 load_dotenv()
-gen_pass(10)
 
 TOKEN = os.getenv("DISCORD_TOKEN")
 
