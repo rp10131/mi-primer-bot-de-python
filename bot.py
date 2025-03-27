@@ -1,4 +1,4 @@
-import discord, random, os, asyncio # "os" es el sistema operativo. Asyncio: https://docs.python.org/3/library/asyncio.html
+import discord, random, os, asyncio, math # "os" es el sistema operativo. Asyncio: https://docs.python.org/3/library/asyncio.html
 from discord.ext import commands, tasks # tasks se usa para mensajes programados/automatizados.
 from dotenv import load_dotenv # info: https://www.geeksforgeeks.org/using-python-environment-variables-with-python-dotenv/
 from datetime import datetime, timedelta # paquete que se usa para obtener meses, el año, hora, etc.
@@ -95,7 +95,7 @@ async def sopa_de_tortuga(ctx, eleccion: str): # "elección" es un argumento str
         await ctx.send(f"Creo que.. {random.choice(opciones)}") # Responde con un objeto de la lista.
 
 @client.command(name="saludo", help='Envía un mensaje de saludo así nada más')
-async def saludo(ctx):
+async def saludo(ctx): # "ctx" significa "context" (contexto).
     # El bot envía un mensaje
     mensaje = await ctx.send("¡Hola a todos!")
     
@@ -113,7 +113,7 @@ async def adivinar_la_fortuna(ctx):
         'Pronto encontrarás algo que pensabas perdido', 'Alguien te enviará memes que te cambiarán la vida', 
         'Tu próxima comida será la mejor de la semana', 'Muchos dulces te esperarán muy pronto', 
         f'El número {random.randint(1,100)} será crucial para ti esta semana', 'Una taza de café de esta semana te dará más energía de lo usual', 
-        f'Sabías que {meses[mes_actual - 1]} es tu mes de suerte? 🍀', 'Mañana deberás cuidarte de las cucarachas!', 
+        f'Sabías que {meses[mes_actual - 1]} es tu mes de suerte? 🍀', 'Mañana deberás cuidarte de las cucarachas!', # "mes_actual - 1" es igual al mes actual en la lista, ya que comienza con el índice 0.
         f'{ctx.author.name}, tu creatividad florecerá pronto! 🎨', f'Crearás un bot de discord este {meses[(mes_actual + random.randint(-1, 2)) % 12]} 😯', # Escoge un mes de la lista. Si el índice es inexistente ahí, se reinician los valores de la lista. 
         'Un giro inesperado en tu vida te llevará a descubrir tu verdadera pasión! Probablemente después de pedir pizza', 'La fortuna sonríe a quienes la buscan... excepto si la buscan en Google Maps', 
         'Una fuerza misteriosa te guiará a encontrar el último calcetín perdido... o a comprar uno nuevo!', 'Tus esfuerzos darán frutos muy pronto. Literalmente, planta ese árbol de limón', 
@@ -129,13 +129,13 @@ async def adivinar_la_fortuna(ctx):
 async def heh(ctx, count_heh = 5): # El argumento por defecto es 5. Se puede cambiar: "y-heh <número>".
     await ctx.send("he" * count_heh) # Multiplica "he" por el argumento y lo envía en un solo mensaje.
 
-@client.command(name='adivinar', help='Escoge un número del 1 al 10 y el usuario tiene que adivinar cuál es.')
+@client.command(name='adivinar', help='Escoge un número del 1 al 6 y el usuario tiene que adivinar cuál es.')
 async def adivinar(ctx):
-    await ctx.send('Adivina un número entre el 1 y el 10!')
+    await ctx.send('Adivina un número entre el 1 y el 6!')
     def is_correct(m): # Cuando hay mensaje (m) de respuesta para adivinar:
         return m.author == ctx.author and m.content.isdigit() # El autor del mensaje es el del comando; el mensaje es un número.
 
-    answer = random.randint(1, 10)
+    answer = random.randint(1, 6) # Escoge un número aleatorio.
 
     try:
         guess = await client.wait_for('message', check=is_correct, timeout=8.0) # Son 8 segundos. Si hay mensaje, verifica si es correcto.
@@ -146,6 +146,59 @@ async def adivinar(ctx):
         await ctx.send('Estas en lo correcto!')
     else:
         await ctx.send(f'Uy. En realidad es {answer}')
+        
+@client.command(name='ecuación', help='Resuelve una ecuación cuadrática. Hay valores por defecto.')
+async def square_x(ctx, a: float = 1, b: float = 0, c: float = 0): # Float sirve por si el usuario ingresa decimales.
+    if a == 0:
+        await ctx.send("El coeficiente 'a' no puede ser 0 en una ecuación cuadrática.") # Si no ya no sería una ecuación cuadrática xd
+        return
+    
+    if a == 1 and b == 0 and c == 0: # Si se usan los valores que están por defecto o si no se ingresan valores:
+        await ctx.send("Ecuación cuadrática: ax^2 + bx + c = 0\n Puedes cambiar los valores de a, b y c! Intentaré despejar x")
+    else:
+        discriminante = b**2 - (4 * (a*c)) # El interior de la raíz cuadrada en la fórmula general.
+        if discriminante > 0: # Dos soluciones reales
+            raiz1 = (-b + math.sqrt(discriminante)) / (2 * a) # sqrt (square root/raíz cuadrada) proviene de la librería math.
+            raiz2 = (-b - math.sqrt(discriminante)) / (2 * a)
+            await ctx.send(f"Las raíces son: x1 = {raiz1}, x2 = {raiz2}")
+        elif discriminante == 0: # Una solución real
+            raiz = -b / (2 * a)
+            await ctx.send(f"La raíz es: x = {raiz}")
+        else: # Soluciones complejas (números imaginarios).
+            parte_real = -b / (2 * a)
+            parte_imaginaria = math.sqrt(-discriminante) / (2 * a)
+            await ctx.send(f"Las raíces son complejas: x1 = {parte_real} + {parte_imaginaria}i, x2 = {parte_real} - {parte_imaginaria}i")
+
+@client.command(name='juego', help='Muestra un juego para jugar en un buscador.')
+async def juego(ctx):
+    juego = { # diccionario contenedor de juegos y sus datos.
+        'Cookie Clicker': {'title': 'Cookie Clicker', 'descripcion': 'Idle clicker en el que haces galletas.', 'link': 'https://cookieclicker.com/', 'imagen': 'https://static.wikia.nocookie.net/cookieclicker/images/5/5a/PerfectCookie.png/revision/latest/scale-to-width-down/250?cb=20130827014912.png'},
+        'Yume Nikki Online': {'title': 'Yume Nikki Online', 'descripcion': 'Sitio web para jugar Yume Nikki y fangames en línea.', 'link': 'https://ynoproject.net/', 'imagen': 'https://yume.wiki/images/6/6e/Minnatsuki_profile.png'},
+        'skribbl': {'title': 'skribbl', 'descripcion': 'Multiplayer en el que dibujas palabras.', 'link': 'https://skribbl.io/', 'imagen': 'https://iemlabs.com/blogs/wp-content/uploads/sites/4/2023/08/skribbl-io-1.webp'},
+        'Gartic Phone': {'title': 'Gartic Phone', 'descripcion': 'Teléfono descompuesto que mezcla frases y dibujos.', 'link': 'https://garticphone.com/', 'imagen': 'https://www.gamenora.com/upload/games/thumbnails/Gartic%20Phone.webp'},
+        'Death by AI': {'title': 'Death by AI', 'descripcion': 'Sobrevive a arenas ficticias creadas por IA.', 'link': 'https://deathbyai.gg/', 'imagen': 'https://browsercraft.com/images/games/covers/death-by-ai.jpg'},
+        'Sort the Court': {'title': 'Sort the Court!','descripcion': 'Das respuestas de sí o no a varias preguntas e influyes en el destino de un reino.', 'link': 'https://graebor.itch.io/sort-the-court', 'imagen': 'https://img.itch.zone/aW1hZ2UvNDczNjcvMjA1ODcxLnBuZw==/original/VFJ3Yl.png'},
+        'Trolley': {'title': 'Absurd Trolley Problems', 'descripcion': 'Problemas de pensamiento por trenes.', 'link': 'https://neal.fun/absurd-trolley-problems/', 'imagen':'https://th.bing.com/th/id/OIP.rWtcO9IzkeEumyKidZ4myAHaC9?rs=1&pid=ImgDetMain'},
+        'FNF': {'title': "Friday Night Funkin'", 'descripcion': 'Juego rítmico del 2020.', 'link': 'https://ninja-muffin24.itch.io/funkin', 'imagen': 'https://upload.wikimedia.org/wikipedia/commons/thumb/d/d2/Friday_Night_Funkin%27_logo.svg/1024px-Friday_Night_Funkin%27_logo.svg.png'},
+        'PASSWORD': {'title': 'The Password Game', 'descripcion': '"Generador" de contraseñas las cuales tienen que seguir varias reglas.', 'link': 'https://neal.fun/password-game/', 'imagen': 'https://i.gzn.jp/img/2023/06/29/the-password-game/01.png'},
+        'Akinator': {'title': 'Akinator', 'descripcion': 'Un genio intenta adivinar algún personaje en el que pienses.', 'link': 'https://akinator.com/', 'imagen': 'https://es.akinator.com/assets/img/akinator.png'},
+        'QuickDraw': {'title': 'Quick, Draw!', 'descripcion': 'Una IA intenta adivinar qué son tus dibujos.', 'link':'https://quickdraw.withgoogle.com/', 'imagen': 'https://upload.wikimedia.org/wikipedia/en/0/0b/Quick%2C_Draw%21_cover.png'},
+        'ChampionIsland': {'title': 'Doodle Champion Island Games', 'descripcion': 'Minijuegos varios sobre deportes.', 'link': 'https://doodles.google/doodle/doodle-champion-island-games-begin/', 'imagen': 'https://www.google.com/logos/doodles/2021/doodle-champion-island-games-begin-6753651837108462.2-2xa.gif'}
+    }
+    juego_random = random.choice(list(juego.keys())) # Escoge uno de los keys del diccionario (Cookie Clicker, Yume Nikki Online, etc.)
+    # Crear el objeto embed
+    embed = discord.Embed(
+        title=juego[juego_random]['title'], # Obtiene el valor 'title' del subdiccionario del key elegido.
+        description=juego[juego_random]['descripcion'], # Mismo caso. Por eso, todos los subdiccionarios tienen que usar los mismos valores.
+        color=discord.Color.blue()
+    )
+
+    # Añadir un pie de página, imagen y autor
+    embed.set_image(url=juego[juego_random]['imagen'])  # Imagen en el embed. Solo acepta URLs.
+    embed.add_field(name="**Link**", value=juego[juego_random]['link']) # A pesar de estar aquí, esta parte aparece arriba de la imagen.
+
+    # Enviar el mensaje embed
+    await ctx.send(embed=embed) # Envía el embed.
 
 @client.command(name='y.help', help='Lista de ayuda creada antes de saber que "help" está por defecto...')
 async def lista_comandos(ctx):
