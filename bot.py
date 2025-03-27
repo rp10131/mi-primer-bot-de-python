@@ -1,6 +1,5 @@
 import discord, random, os, asyncio
 from discord.ext import commands, tasks
-from bot_logic import gen_pass
 from dotenv import load_dotenv
 from datetime import datetime, timedelta
 
