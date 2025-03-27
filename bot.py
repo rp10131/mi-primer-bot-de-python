@@ -1,12 +1,12 @@
-import discord, random, os, asyncio
-from discord.ext import commands, tasks
-from dotenv import load_dotenv
-from datetime import datetime, timedelta
+import discord, random, os, asyncio 
+from discord.ext import commands, tasks # tasks se usa para mensajes programados/automatizados.
+from dotenv import load_dotenv # info: https://www.geeksforgeeks.org/using-python-environment-variables-with-python-dotenv/
+from datetime import datetime, timedelta # paquete que se usa para obtener meses, el año, hora, etc.
 
 # Cargar las variables del archivo .env y funciones
 load_dotenv()
 
-TOKEN = os.getenv("DISCORD_TOKEN")
+TOKEN = os.getenv("DISCORD_TOKEN") # Obtiene la variable DISCORD_TOKEN del archivo .env
 
 # La variable intents almacena los privilegios del bot
 intents = discord.Intents.default()
@@ -20,7 +20,7 @@ last_message_time = datetime.now()
 async def on_ready():
     juego = ['Ping Pong', 'Piedra, Papel o Tijera', 'Sopa de Tortuga']
     viendo = ['Discord', 'la fortuna de los miembros conectados', 'y-y.help']
-    haciendo = random.randint(1,2)
+    haciendo = random.randint(1,2) # Escoge la actividad que aparece en el estado del bot. 
     if haciendo == 1:
         activity = discord.Game(name=random.choice(juego))
     else:
@@ -28,27 +28,27 @@ async def on_ready():
 
     await client.change_presence(activity=activity)
     print(f'Hemos iniciado sesión como {client.user}\n{activity}')
-    check_inactivity.start()
+    check_inactivity.start() # Comienza a verificar si ha pasado mucho tiempo desde el último mensaje.
 
 @client.event
 async def on_message(message):
     global last_message_time
 
     if message.author == client.user:
-        return
+        return # No queremos que el bot responda a sus propios mensajes.
     else:
-        last_message_time = datetime.now()
+        last_message_time = datetime.now() # La fecha y hora de la última vez que alguien envió un mensaje.
     if message.content.startswith('hola'):
         await message.channel.send("Hola!")
     elif message.content.startswith('adiós'):
-        await message.channel.send("\U0001f642")
+        await message.channel.send("\U0001f642") # Emoji en unicode.
     elif message.content.startswith('!ping'):
         await message.channel.send("Pong!")
-    if (message.content == 'y-tortuga'):
+    if (message.content == 'y-tortuga'): # El comando cuando no se le dan argumentos.
         await message.add_reaction("\U0001F422")
         await message.channel.send("Un hombre pidió sopa de tortuga en un restaurante con vista al mar. El hombre tomó un sorbo de sopa, confirmó que era auténtica sopa de tortuga, pagó la cuenta, se fue a casa y luego se suicidó. ¿Por qué?")
         await message.channel.send("Cómo jugar: Ingresa tu pregunta con el siguiente formato: y-tortuga <preguna>. Yumemibot responderá con 'Sí' o 'No' o 'Es irrelevante'.")
-    if message.content == 'y-piedrapapel':
+    if message.content == 'y-piedrapapel': # El comando cuando no se le dan argumentos.
         await message.channel.send("Juguemos Piedra Papel o Tijera! Tu mensaje debe verse así: y-piedrapapel <opción>")
 
     await client.process_commands(message)
@@ -56,43 +56,43 @@ async def on_message(message):
 @tasks.loop(seconds=60)  # Verifica cada minuto
 async def check_inactivity():
     global last_message_time
-    current_time = datetime.now()
-    if current_time - last_message_time > timedelta(minutes=60):
-        channel = discord.utils.get(client.get_all_channels(), name="💀〣spam")
+    current_time = datetime.now() # Hora y fecha actuales
+    if current_time - last_message_time > timedelta(minutes=60): # Si ha pasado más de una hora desde el último mensaje.
+        channel = discord.utils.get(client.get_all_channels(), name="nombre-del-canal") # Se puede cambiar el nombre del canal.
         if channel:
             await channel.send("¡Hola! Parece que hace rato no hay mensajes 😊")
             print(last_message_time)
-            last_message_time = datetime.now()
+            last_message_time = datetime.now() # El mensaje del bot se convierte en el más reciente y se guardan la fecha y hora.
 
 @client.command(name="piedrapapel", help='juega al juego Piedra Papel o Tijera; puede funcionar con solo "y-piedrapapel"')
-async def piedra_papel_tijera(ctx, eleccion: str):
+async def piedra_papel_tijera(ctx, eleccion: str): # "eleccion: str" es un argumentos que tiene que introducir el usuario.
     opciones = ["piedra", "papel", "tijera"]
-    if eleccion.lower() not in opciones:
+    if eleccion.lower() not in opciones: # El argumento no está en la lista.
         await ctx.send("Por favor, elige entre piedra, papel o tijera.")
         return
-    elif eleccion.lower() == 'yumemi':
+    elif eleccion.lower() == 'yumemi': # Diversión.
         await ctx.send(">.<")
         return
 
     eleccion_bot = random.choice(opciones)
-    mensaje = f"🤖 Yo elijo **{eleccion_bot}**. Tú eliges **{eleccion.lower()}**."
+    mensaje = f"🤖 Yo elijo **{eleccion_bot}**. Tú eliges **{eleccion.lower()}**." # La elección del bot y el usuario. En minúsculas.
 
     if eleccion.lower() == eleccion_bot:
         resultado = "¡Empatamos! :o"
     elif (eleccion.lower() == "piedra" and eleccion_bot == "tijera") or \
          (eleccion.lower() == "papel" and eleccion_bot == "piedra") or \
          (eleccion.lower() == "tijera" and eleccion_bot == "papel"):
-        resultado = "¡Ganaste! :)"
+        resultado = "¡Ganaste! :)" # Verifica si el usuario ganó.
     else:
         resultado = "¡Perdiste! ;v;"
 
     await ctx.send(f"{mensaje}\n{resultado}")
 
 @client.command(name="tortuga", help='juega al juego Sopa de Tortuga; puede funcionar con solo "y-tortuga"')
-async def sopa_de_tortuga(ctx, eleccion: str):
+async def sopa_de_tortuga(ctx, eleccion: str): # "elección: str" es un argumento que puede tener cualquier valor.
     opciones = ['Sí', 'No', 'Es irrelevante']
-    if eleccion != '':
-        await ctx.send(f"Creo que.. {random.choice(opciones)}")
+    if eleccion != '': # si hay un argumento:
+        await ctx.send(f"Creo que.. {random.choice(opciones)}") # Responde con un objeto de la lista.
 
 @client.command(name="saludo", help='Envía un mensaje de saludo así nada más')
 async def saludo(ctx):
@@ -114,20 +114,20 @@ async def adivinar_la_fortuna(ctx):
         'Tu próxima comida será la mejor de la semana', 'Muchos dulces te esperarán muy pronto', 
         f'El número {random.randint(1,100)} será crucial para ti esta semana', 'Una taza de café de esta semana te dará más energía de lo usual', 
         f'Sabías que {meses[mes_actual - 1]} es tu mes de suerte? 🍀', 'Mañana deberás cuidarte de las cucarachas!', 
-        f'{ctx.author.name}, tu creatividad florecerá pronto! 🎨', f'Crearás un bot de discord este {meses[(mes_actual + random.randint(-1, 2)) % 12]} 😯', 
+        f'{ctx.author.name}, tu creatividad florecerá pronto! 🎨', f'Crearás un bot de discord este {meses[(mes_actual + random.randint(-1, 2)) % 12]} 😯', # Escoge un mes de la lista. Si el índice es inexistente ahí, se reinician los valores de la lista. 
         'Un giro inesperado en tu vida te llevará a descubrir tu verdadera pasión! Probablemente después de pedir pizza', 'La fortuna sonríe a quienes la buscan... excepto si la buscan en Google Maps', 
         'Una fuerza misteriosa te guiará a encontrar el último calcetín perdido... o a comprar uno nuevo!', 'Tus esfuerzos darán frutos muy pronto. Literalmente, planta ese árbol de limón', 
         'Pronto recibirás un mensaje importante... de una cadena de WhatsApp que lleva años circulando, claro', 
         'Tu café será perfecto- pero olvidarás tomarlo', 'La respuesta a una pregunta filósofica te llegará pronto',
         f'Lo creas o no... verano {datetime.now().year} ha de ser tu verano más fresco', f'{ctx.author.name}... sólo hazlo ya! sólo hazlo ya!',
         'Hmmm, se me hace que tienes que dejar el teléfono o la PC por un rato', f'Algo te hará amar la historia en {meses[(mes_actual + random.randint(-3, 3)) % 12]} 🤔'
-    ]
+    ] # Opciones para la fortuna.
 
-    await ctx.send(f"🔮 {ctx.author.mention}! Tu fortuna: {random.choice(opciones)}")
+    await ctx.send(f"🔮 {ctx.author.mention}! Tu fortuna: {random.choice(opciones)}") # Menciona al usuario y le da una fortuna aleatoria.
 
 @client.command()
-async def heh(ctx, count_heh = 5):
-    await ctx.send("he" * count_heh)
+async def heh(ctx, count_heh = 5): # El argumento por defecto es 5. Se puede cambiar: "y-heh <número>".
+    await ctx.send("he" * count_heh) # Multiplica "he" por el argumento y lo envía en un solo mensaje.
 
 @client.command(name='adivinar', help='Escoge un número del 1 al 10 y el usuario tiene que adivinar cuál es.')
 async def adivinar(ctx):
@@ -138,11 +138,11 @@ async def adivinar(ctx):
     answer = random.randint(1, 10)
 
     try:
-        guess = await client.wait_for('message', check=is_correct, timeout=8.0)
+        guess = await client.wait_for('message', check=is_correct, timeout=8.0) # Son 8 segundos. Si hay mensaje, verifica si es correcto.
     except asyncio.TimeoutError:
-        return await ctx.send(f'Lo lamento, te tardaste demasiado. Era {answer}')
+        return await ctx.send(f'Lo lamento, te tardaste demasiado. Era {answer}') # Si el usuario tarda mucho.
 
-    if int(guess.content) == answer:
+    if int(guess.content) == answer: # Si lo que escribió el usuario es igual al número del bot
         await ctx.send('Estas en lo correcto!')
     else:
         await ctx.send(f'Uy. En realidad es {answer}')
@@ -160,4 +160,4 @@ async def lista_comandos(ctx):
 
     await ctx.send(embed=embed)
 
-client.run(TOKEN)
+client.run(TOKEN) 
