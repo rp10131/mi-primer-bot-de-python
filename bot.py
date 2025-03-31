@@ -201,12 +201,17 @@ async def juego(ctx):
     # Enviar el mensaje embed
     await ctx.send(embed=embed) # Envía el embed.
 
+@client.command(name='unión', help='Muestra la fecha en la que un miembro se unió al servidor.')
+async def joined(ctx, member: discord.Member): # "discord.Member" implica que quien use el comando tiene que escribir el usuario del miembro
+    mensaje = await ctx.send(f'{member.name} se unió a {member.guild} el {discord.utils.format_dt(member.joined_at)}')
+    await mensaje.add_reaction("👋") # Reacciona a su propio mensaje gracias a que "mensaje" almacenó cuál fue el que hizo.
+
 @client.command(name='y.help', help='Lista de ayuda creada antes de saber que "help" está por defecto...')
 async def lista_comandos(ctx):
     embed = discord.Embed(title="✯y u me m i b o t ・ c o m m a n d s✯", description="Aquí están los comandos organizados por categorías:", color=discord.Color.blue())
     
     # Categoría: Otro
-    embed.add_field(name="**Otros**", value="`saludo` - Envía un saludo amistoso así nada más., inline=False)
+    embed.add_field(name="**Otros**", value="`juego` - envía un juego online para jugar en el buscador.\n `ecuación` - resuelve ecuaciones cuadráticas: 'y-ecuación <a> <b> <c>'.\n `unión` - Muestra la fecha en la que un miembro se unió al servidor.", inline=False)
     
     # Categoría: Diversión
     embed.add_field(name="**Diversión**", value="`fortuna` - Predice tu fortuna en un futuro cercano.\n `piedrapapel` - juega al juego Piedra Papel o Tijera; puede funcionar con solo 'y-piedrapapel'\n `tortuga` - juega al juego Sopa de Tortuga; puede funcionar con solo 'y-tortuga'\n `heh` - risas. Es posible cambiar la cantidad de 'heh' con 'y-heh <número>'", inline=False)
