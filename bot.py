@@ -18,18 +18,39 @@ last_message_time = datetime.now()
 
 @client.event
 async def on_ready(): # Cuando se abre el archivo .py del código del bot en la consola.
+    await client.change_presence(activity=actividad()) # La actividad es la variable "presencia", llamada usando la función actividad()
+    check_inactivity.start() # Comienza a verificar si ha pasado mucho tiempo desde el último mensaje.
+    cambiar_estado.start() # Comienza a cambiar la actividad cada determinado tiempo.
+    print(f'\n{client.user} está en línea! \nActividad: {presencia}\nLatencia: {round(client.latency * 1000)}ms') # El bot está en línea.
+
+def actividad():
+    global presencia # global sirve para mostrar/usar la variable en sitios fuera de donde se llamó a la función, como "print()".
     juego = ['Ping Pong', 'Piedra, Papel o Tijera', 'Sopa de Tortuga']
     viendo = ['Discord', 'la fortuna de los miembros conectados', 'y-y.help']
-    haciendo = random.randint(1,2) # Escoge la actividad que aparece en el estado del bot. 
+    haciendo = random.randint(1,2) # Escoge el tipo de actividad que aparecerá en el estado del bot. 
     if haciendo == 1:
-        activity = discord.Game(name=random.choice(juego)) # El estado es "Jugando a _".
+        presencia = discord.Game(name=random.choice(juego)) # El estado es "Jugando a _".
+        return presencia # regresa la variable "presencia" a la línea de código que llamó a la función.
     else:
-        activity = discord.Activity(type=discord.ActivityType.watching, name=random.choice(viendo)) # El estado es "Viendo _".
+        presencia = discord.Activity(type=discord.ActivityType.watching, name=random.choice(viendo)) # El estado es "Viendo _".
+        return presencia # regresa la variable "presencia" a la línea de código que llamó a la función.
 
-    await client.change_presence(activity=activity) # El estado se activa.
-    print(f'Hemos iniciado sesión como {client.user}\n{activity}') # El bot está en línea.
-    check_inactivity.start() # Comienza a verificar si ha pasado mucho tiempo desde el último mensaje.
+@tasks.loop(hours=1.5) # Se repite cada hora y media.
+async def cambiar_estado():
+    await client.change_presence(activity=actividad()) # La actividad es la variable "presencia", llamada usando la función actividad()
+    print(f'\nEl estado cambió a {presencia} a las {datetime.now()}') # Muestra "presencia" y la hora en la que cambió.
 
+@tasks.loop(seconds=60)  # Clase Tasks. Verifica cada minuto.
+async def check_inactivity():
+    global last_message_time
+    current_time = datetime.now() # Hora y fecha actuales.
+    if current_time - last_message_time > timedelta(minutes=60): # Si ha pasado más de una hora desde el último mensaje.
+        channel = discord.utils.get(client.get_all_channels(), name="nombre-del-canal") # Se puede cambiar el nombre del canal.
+        if channel:
+            await channel.send("¡Hola! Parece que hace rato no hay mensajes 😊")
+            print(last_message_time) # En la consola aparece la fecha del último mensaje.
+            last_message_time = datetime.now() # El mensaje del bot se convierte en el más reciente y se guardan la fecha y hora.
+            
 @client.event
 async def on_message(message): # Cuando hay mensajes en el servidor de Discord.
     global last_message_time
@@ -43,7 +64,7 @@ async def on_message(message): # Cuando hay mensajes en el servidor de Discord.
     elif message.content.startswith('adiós'):
         await message.channel.send("\U0001f642") # Emoji en unicode.
     elif message.content.startswith('!ping'):
-        await message.channel.send("Pong!")
+        await message.channel.send(f"Pong!\nLatencia: {round(client.latency * 1000)}ms")
     if (message.content == 'y-tortuga'): # El comando cuando no se le dan argumentos.
         await message.add_reaction("\U0001F422") # Añade una reacción al mensaje del usuario.
         await message.channel.send("Un hombre pidió sopa de tortuga en un restaurante con vista al mar. El hombre tomó un sorbo de sopa, confirmó que era auténtica sopa de tortuga, pagó la cuenta, se fue a casa y luego se suicidó. ¿Por qué?")
@@ -52,28 +73,15 @@ async def on_message(message): # Cuando hay mensajes en el servidor de Discord.
         await message.channel.send("Juguemos Piedra Papel o Tijera! Tu mensaje debe verse así: y-piedrapapel <opción>")
 
     await client.process_commands(message) # Esto es necesario para que el bot pueda responder a comandos además de a eventos.
-
-@tasks.loop(seconds=60)  # Clase Tasks. Verifica cada minuto.
-async def check_inactivity():
-    global last_message_time
-    current_time = datetime.now() # Hora y fecha actuales.
-    if current_time - last_message_time > timedelta(minutes=60): # Si ha pasado más de una hora desde el último mensaje.
-        channel = discord.utils.get(client.get_all_channels(), name="nombre-del-canal") # Se puede cambiar el nombre del canal.
-        if channel:
-            await channel.send("¡Hola! Parece que hace rato no hay mensajes 😊")
-            print(last_message_time) # En la consola aparece la fecha del último mensaje.
-            last_message_time = datetime.now() # El mensaje del bot se convierte en el más reciente y se guardan la fecha y hora.
-
+    
 @client.command(name="piedrapapel", help='juega al juego Piedra Papel o Tijera; puede funcionar con solo "y-piedrapapel"')
 async def piedra_papel_tijera(ctx, eleccion: str): # "eleccion" es un argumento string que tiene que introducir el usuario.
     opciones = ["piedra", "papel", "tijera"]
+    if eleccion.lower() == 'yumemi': # Diversión.
+        await ctx.send(">.<")
     if eleccion.lower() not in opciones: # Si el argumento no está en la lista.
         await ctx.send("Por favor, elige entre piedra, papel o tijera.")
         return
-    elif eleccion.lower() == 'yumemi': # Diversión.
-        await ctx.send(">.<")
-        return
-
     eleccion_bot = random.choice(opciones)
     mensaje = f"🤖 Yo elijo **{eleccion_bot}**. Tú eliges **{eleccion.lower()}**." # La elección del bot y el usuario. En minúsculas.
 
@@ -89,18 +97,11 @@ async def piedra_papel_tijera(ctx, eleccion: str): # "eleccion" es un argumento 
     await ctx.send(f"{mensaje}\n{resultado}")
 
 @client.command(name="tortuga", help='juega al juego Sopa de Tortuga; puede funcionar con solo "y-tortuga"')
-async def sopa_de_tortuga(ctx, eleccion: str): # "elección" es un argumento string que puede tener cualquier valor.
-    opciones = ['Sí', 'No', 'Es irrelevante']
-    if eleccion != '': # si hay un argumento:
-        await ctx.send(f"Creo que.. {random.choice(opciones)}") # Responde con un objeto de la lista.
-
-@client.command(name="saludo", help='Envía un mensaje de saludo así nada más')
-async def saludo(ctx): # "ctx" significa "context" (contexto).
-    # El bot envía un mensaje
-    mensaje = await ctx.send("¡Hola a todos!")
-    
-    # Reacciona al mensaje que acaba de enviar
-    await mensaje.add_reaction("👋")
+async def sopa_de_tortuga(ctx, idea: str): # "idea" es un argumento string que puede tener cualquier valor.
+    opciones = ['sí', 'no', 'es irrelevante']
+    opciones2 = ['Emm...', 'Definitivamente', 'Creo que...', 'Se me hace que', 'Vaya idea!!']
+    if idea != '': # si hay un argumento:
+        await ctx.send(f"{random.choice(opciones2)} {random.choice(opciones)}") # Responde con un objeto de aleatorio de ambas listas.
 
 @client.command(name='fortuna', help='Adivina la fortuna del usuario')
 async def adivinar_la_fortuna(ctx):
