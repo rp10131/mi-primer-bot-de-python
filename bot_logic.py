@@ -65,5 +65,13 @@ def probabilidad(imagen):
         else: # la imagen se envía.
             print(si_o_no)
             return imagen
+    elif imagen == '9_10_21.gif': # Una imagen en específico que no está con las otras.
+        si_o_no = random.randint(1,10) # La probabilidad es menor.
+        if si_o_no != 1: # la imagen no se envía.
+            print(f"Se hizo la probabilidad ({si_o_no})|{imagen}" )
+            return meme(estilo_2) # llama a la función "meme" para escoja una nueva imagen.
+        else: # la imagen se envía.
+            print(si_o_no)
+            return imagen
     else:
         return imagen
