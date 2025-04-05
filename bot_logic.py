@@ -43,7 +43,7 @@ def obtener_url_de_oso(): # Las imagenes cambian dependiedo de las medidas.
     url = f"https://placebear.com/{x}/{y}"
     return url
 ###
-# comandos de y-meme
+# comandos de y-meme. Agradecimientos especiales a mis compañeros de clase por haber compartido una buena parte de los memes.
 def meme(estilo):
     global estilo_2
     estilo_2 = estilo # almacena el estilo que recibió´la función para poder usarla en otro lugar.
