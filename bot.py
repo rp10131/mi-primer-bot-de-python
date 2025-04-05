@@ -1,5 +1,6 @@
 import discord, random, os, asyncio, math # "os" es el sistema operativo. Asyncio: https://docs.python.org/3/library/asyncio.html
 from discord.ext import commands, tasks # tasks se usa para mensajes programados/automatizados.
+from bot_logic import gen_pass, get_image, meme # bot_logic es un archivo .py local creado para ayudar a organizar los comandos.
 from dotenv import load_dotenv # info: https://www.geeksforgeeks.org/using-python-environment-variables-with-python-dotenv/
 from datetime import datetime, timedelta # paquete que se usa para obtener meses, el año, hora, etc.
 
@@ -170,6 +171,29 @@ async def square_x(ctx, a: float = 1, b: float = 0, c: float = 0): # Float sirve
             parte_imaginaria = math.sqrt(-discriminante) / (2 * a)
             await ctx.send(f"Las raíces son complejas: x1 = {parte_real} + {parte_imaginaria}i, x2 = {parte_real} - {parte_imaginaria}i")
 
+@client.command(name='meme', help='Envía memes.')
+async def mem(ctx, estilo: str = None): # "estilo" es el potencial nombre de las subcarpetas que almacenan memes de varias cosas.
+    lista_estilos = ['animal','app','arte_clásico','ciencia','programación','TV','vida','otro'] # Nombres de subcarpetas.
+    try:
+        if estilo == None or estilo not in lista_estilos: # Si "estilo" está vacío o no está en la lista:
+            estilo = random.choice(lista_estilos) # Se le asigna un valor aleatorio de la lista_estilos.
+            
+        imagen = meme(estilo) # En la función "meme" de bot_logic de obtiene un meme en base al estilo.
+
+        with open(f'images/{estilo}/{imagen}', 'rb') as f: # Busca la imagen.
+            picture = discord.File(f) # Hace que discord pueda enviarla.
+        # A continuación, podemos enviar este archivo como parámetro.
+        await ctx.send(file=picture)
+    except Exception as e:
+        print('Hubo un error:', e)
+        await ctx.send('Parece que no funcionó')
+
+@client.command('animal',help='Envía una foto aleatoria de un animal. Se puede escoger el animal en cuestión.')
+async def duck(ctx, animal: str = None): # "animal" es un parámetro que está vacío por defecto.
+    image_url = get_image(animal) # obtiene una url de la función get_image() en bot_logic usando el valor del parámetro.
+    print(image_url)
+    await ctx.send(image_url)
+    
 @client.command(name='juego', help='Muestra un juego para jugar en un buscador.')
 async def juego(ctx):
     juego = { # diccionario contenedor de juegos y sus datos.
@@ -214,9 +238,9 @@ async def lista_comandos(ctx):
     embed.add_field(name="**Otros**", value="`juego` - envía un juego online para jugar en el buscador.\n `ecuación` - resuelve ecuaciones cuadráticas: 'y-ecuación <a> <b> <c>'.\n `unión` - Muestra la fecha en la que un miembro se unió al servidor.", inline=False)
     
     # Categoría: Diversión
-    embed.add_field(name="**Diversión**", value="`fortuna` - Predice tu fortuna en un futuro cercano.\n `piedrapapel` - juega al juego Piedra Papel o Tijera; puede funcionar con solo 'y-piedrapapel'\n `tortuga` - juega al juego Sopa de Tortuga; puede funcionar con solo 'y-tortuga'\n `heh` - risas. Es posible cambiar la cantidad de 'heh' con 'y-heh <número>'", inline=False)
+    embed.add_field(name="**Diversión**", value="`fortuna` - Predice tu fortuna en un futuro cercano.\n `piedrapapel` - juega al juego Piedra Papel o Tijera; puede funcionar con solo 'y-piedrapapel'\n `tortuga` - juega al juego Sopa de Tortuga; puede funcionar con solo 'y-tortuga'\n `heh` - risas. Es posible cambiar la cantidad de 'heh' con 'y-heh <número>'\n`meme` - Muestra un meme de programación.\n`animal` - Envía una foto aleatoria de un animal. Opcionalmente, se puede escoger el animal usando 'y-animal <animal>'; en ese caso, cualquier valor no registrado tendrá de respuesta la lista de los que sí están.", inline=False)
     embed.add_field(name="**Notas**", value="El prefijo del bot es `y-`\n Yumemibot es capaz de responder a mensajes que no son comandos (y por lo tanto, no usan el prefijo) en algunos casos.", inline=False)
 
     await ctx.send(embed=embed)
 
-client.run(TOKEN) # El bot se pone en marcha.
+client.run(TOKEN) # El bot se pone en parcha
