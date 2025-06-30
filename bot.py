@@ -78,7 +78,7 @@ async def on_message(message): # Cuando hay mensajes en el servidor de Discord.
 @client.command(name="piedrapapel", help='juega al juego Piedra Papel o Tijera; puede funcionar con solo "y-piedrapapel"')
 async def piedra_papel_tijera(ctx, eleccion: str): # "eleccion" es un argumento string que tiene que introducir el usuario.
     opciones = ["piedra", "papel", "tijera"]
-    if eleccion.lower() == 'yumemi': # Diversión.
+    if eleccion.lower() == 'bot': # Diversión.
         await ctx.send(">.<")
     if eleccion.lower() not in opciones: # Si el argumento no está en la lista.
         await ctx.send("Por favor, elige entre piedra, papel o tijera.")
@@ -232,7 +232,7 @@ async def joined(ctx, member: discord.Member): # "discord.Member" implica que qu
 
 @client.command(name='y.help', help='Lista de ayuda creada antes de saber que "help" está por defecto...')
 async def lista_comandos(ctx):
-    embed = discord.Embed(title="✯y u me m i b o t ・ c o m m a n d s✯", description="Aquí están los comandos organizados por categorías:", color=discord.Color.blue())
+    embed = discord.Embed(title="✯b o t ・ c o m m a n d s✯", description="Aquí están los comandos organizados por categorías:", color=discord.Color.blue())
     
     # Categoría: Otro
     embed.add_field(name="**Otros**", value="`juego` - envía un juego online para jugar en el buscador.\n `ecuación` - resuelve ecuaciones cuadráticas: 'y-ecuación <a> <b> <c>'.\n `unión` - Muestra la fecha en la que un miembro se unió al servidor.", inline=False)
